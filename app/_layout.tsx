@@ -1,5 +1,4 @@
 import {Tabs} from "expo-router";
-import {Text} from "react-native";
 import Ionicons from '@expo/vector-icons/Ionicons';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 
@@ -23,7 +22,7 @@ export default function Layout() {
                 options={{
                     tabBarLabel: "Home",
                     tabBarIcon: ({color, focused}) => (
-                        <Ionicons name={focused ? 'home-sharp' : 'home-outline'} color={color} size={24} />
+                        <Ionicons name={focused ? 'home-sharp' : 'home-outline'} color={color} size={24}/>
                     ),
                 }}
             />
@@ -32,18 +31,10 @@ export default function Layout() {
                 options={{
                     tabBarLabel: "Tasks",
                     tabBarIcon: ({color, focused}) => (
-                        <FontAwesome name={focused ? 'tasks' : 'th-list'} size={24} color={color} />
+                        <FontAwesome name={focused ? 'tasks' : 'th-list'} size={24} color={color}/>
                     ),
                 }}
-            />
-            <Tabs.Screen
-                name="home"
-                options={{
-                    title: 'Home',
-                    tabBarIcon: ({ color, focused }) => (
-                        <Ionicons name={focused ? 'home-sharp' : 'home-outline'} color={color} size={24} />
-                    ),
-                }}
+
             />
         </Tabs>
 

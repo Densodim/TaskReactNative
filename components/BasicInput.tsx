@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {
     Platform,
     StyleProp,
@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import DateTimePicker, {DateTimePickerEvent} from "@react-native-community/datetimepicker";
 import {TypeTask} from "@/components/EditableTaskField";
+import {useValidation, Validation} from "@/hooks/useValidation";
 
 export default function BasicInput({
                                        text,
@@ -22,10 +23,20 @@ export default function BasicInput({
                                        placeholder = "",
                                        isError = false,
                                        onChangeText,
+                                       validation,
                                        ...props
                                    }: Props) {
 
     const [showDatePicker, setShowDatePicker] = useState(false);
+
+    const [tempValue, setTempValue] = useState(value);
+    const error = useValidation(tempValue, validation);
+
+    useEffect(() => {
+        if (isError) {
+            setTempValue(value);
+        }
+    }, [isError, value]);
 
     const inputStyles = [
         styles.input,
@@ -37,9 +48,16 @@ export default function BasicInput({
     const handleDateChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
         setShowDatePicker(false);
         if (selectedDate) {
-            onChangeText?.(selectedDate.toISOString());
+            const formattedDate = selectedDate.toISOString();
+            setTempValue(formattedDate);
+            onChangeText?.(formattedDate);
         }
     };
+
+    const handleTextChange = (value: string) => {
+        setTempValue(value)
+        onChangeText?.(value);
+    }
 
     const renderInput = () => {
         if (type === "date") {
@@ -67,14 +85,17 @@ export default function BasicInput({
             );
         } else {
             return (
-                <TextInput
-                    placeholder={placeholder}
-                    style={inputStyles}
-                    value={value}
-                    onChangeText={onChangeText}
-                    keyboardType={type === "number" ? "numeric" : "default"}
-                    {...props}
-                />
+                <View>
+                    <TextInput
+                        placeholder={placeholder}
+                        style={inputStyles}
+                        value={tempValue}
+                        onChangeText={handleTextChange}
+                        keyboardType={type === "number" ? "numeric" : "default"}
+                        {...props}
+                    />
+                    {error && <Text style={styles.errorText}>{error}</Text>}
+                </View>
             );
         }
     };
@@ -97,8 +118,8 @@ type Props = {
     placeholder?: string;
     isError?: boolean;
     onChangeText?: (text: string) => void;
+    validation?: Validation
 } & TextInputProps;
-
 
 
 // Style
@@ -120,6 +141,10 @@ const styles = StyleSheet.create({
     },
     error: {
         borderColor: "red",
+    },
+    errorText: {
+        color: "red",
+        marginTop: 4,
     },
 });
 

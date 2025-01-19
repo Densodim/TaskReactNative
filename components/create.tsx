@@ -4,7 +4,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import uuid from 'react-native-uuid';
 import Fontisto from '@expo/vector-icons/Fontisto';
 import BasicInput from "@/components/BasicInput";
-import validateField from "@/hooks/validateField";
+import validateField, {VALIDATION_RULES} from "@/hooks/validateField";
 
 export enum Status {
     progres = 'In Progress',
@@ -21,8 +21,8 @@ export default function CreateTask({updateTasks, setExpanded}: Props) {
 
     const saveTask = async () => {
         try {
-            const newTask = {id: uuid.v4(), title, description, date, location, status: Status.progres};
-            const error = validateField(newTask.title)
+            const newTask = {id: uuid.v4(), title, description, date:Date(), location, status: Status.progres};
+            const error = validateField(newTask)
             if (error) {
                 ToastAndroid.showWithGravity(error, ToastAndroid.SHORT, ToastAndroid.TOP);
                 return;
@@ -45,13 +45,13 @@ export default function CreateTask({updateTasks, setExpanded}: Props) {
             <View>
                 <Text style={styles.title}>Create a Task</Text>
                 <BasicInput text={'Task Title'} style={styles.input} value={title} onChangeText={setTitle}
-                            placeholder={'Task Title'}/>
+                            placeholder={'Task Title'} validation={VALIDATION_RULES.title}/>
                 <BasicInput value={description} text={'Description'} style={styles.input} onChangeText={setDescription}
-                            multiline={true} placeholder={'Description'}/>
+                            multiline={true} placeholder={'Description'} validation={VALIDATION_RULES.description}/>
                 <BasicInput value={date} text={'Date'} style={styles.input} onChangeText={setDate} placeholder={'Date'}
                             type={'date'}/>
                 <BasicInput value={location} text={'Location'} style={styles.input} onChangeText={setLocation}
-                            placeholder={'Location'}/>
+                            placeholder={'Location'} validation={VALIDATION_RULES.location}/>
                 <Fontisto name="save" size={24} color="black" onPress={saveTask}/>
             </View>
         </>

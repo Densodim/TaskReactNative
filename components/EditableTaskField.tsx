@@ -1,8 +1,8 @@
-import React, {useEffect, useState} from 'react';
-import {StyleProp, StyleSheet, Text, TextStyle, TouchableOpacity, View} from 'react-native';
+import React from 'react';
+import {StyleProp, Text, TextStyle, TouchableOpacity, View} from 'react-native';
 import BasicInput from "@/components/BasicInput";
 import ModalSelector from "react-native-modal-selector";
-import {useValidation, Validation} from "@/hooks/useValidation";
+import {Validation} from "@/hooks/useValidation";
 
 
 export const EditableTaskField = ({
@@ -17,17 +17,6 @@ export const EditableTaskField = ({
                                       options,
                                       validation
                                   }: EditableTaskFieldProps) => {
-
-    const [tempValue, setTempValue] = useState(value);
-    const error = useValidation(tempValue, validation);
-
-    // Синхронизация tempValue с родительским значением value при изменении isEditing
-    useEffect(() => {
-        if (isEditing) {
-            setTempValue(value);
-        }
-    }, [isEditing, value]);
-
 
     if (type === 'select') {
         return (
@@ -61,27 +50,20 @@ export const EditableTaskField = ({
                 {isEditing ? (
                     <View>
                         <BasicInput
-                            value={tempValue}
+                            value={value}
                             onChangeText={onChange}
                             style={style}
                             type={type}
+                            validation={validation}
                         />
                     </View>
                 ) : (
                     value
                 )}
             </Text>
-            {error && <Text style={styles.errorText}>{error}</Text>}
         </TouchableOpacity>
     )
 };
-
-const styles = StyleSheet.create({
-    errorText: {
-        color: "red",
-        marginTop: 4,
-    },
-})
 
 //type
 type EditableTaskFieldProps = {

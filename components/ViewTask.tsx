@@ -1,5 +1,5 @@
 import {StyleSheet, Text, ToastAndroid, TouchableOpacity, View} from "react-native";
-import {useEffect, useState} from "react";
+import {useState} from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import {Task} from "@/app/tasks";
@@ -7,7 +7,8 @@ import {EditableTaskField} from "@/components/EditableTaskField";
 import {Status} from "@/components/create";
 import uuid from "react-native-uuid";
 import validateField, {VALIDATION_RULES} from "@/hooks/validateField";
-
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import {useFetchStoredTask} from "@/hooks/useFetchStoredTask";
 
 
 const OPTIONS = [
@@ -17,31 +18,9 @@ const OPTIONS = [
 ]
 
 export default function ViewTask({taskId, onBack, updateTasks}: Props) {
-    const [taskView, setTaskView] = useState<Task[]>([]);
+
+    const {editedTask, setTaskView, taskView, setEditedTask} = useFetchStoredTask(taskId);
     const [editingField, setEditingField] = useState<string | null>(null);
-    const [editedTask, setEditedTask] = useState<Task | null>(null);
-
-    useEffect(() => {
-        const fetchStoredTask = async () => {
-            try {
-                const storedTask = await AsyncStorage.getItem("tasks");
-                if (storedTask != null) {
-                    const taskParse = JSON.parse(storedTask);
-                    const task = taskParse.find((task: { id: string }) => task.id === taskId);
-                    if (task) {
-                        setTaskView([task]);
-                        setEditedTask(task);
-                    }
-                } else {
-                    setTaskView([]);
-                }
-            } catch (error) {
-                console.error("Failed to fetch tasks:", error);
-            }
-        };
-
-        fetchStoredTask();
-    }, [taskId]);
 
     const deleteTask = async () => {
         try {
@@ -104,6 +83,7 @@ export default function ViewTask({taskId, onBack, updateTasks}: Props) {
     return (
         <View>
             <TouchableOpacity onPress={onBack}>
+                <MaterialCommunityIcons name="backburger" size={24} color="black"/>
                 <Text>Back to Task List</Text>
             </TouchableOpacity>
             {Array.isArray(taskView) && taskView.length > 0 ? (
@@ -116,7 +96,7 @@ export default function ViewTask({taskId, onBack, updateTasks}: Props) {
                             onChange={(text) => handleEditChange('title', text)}
                             onDoubleClick={() => handleDoubleClick('title')}
                             style={styles.taskTitle}
-                            validation={VALIDATION_RULES}
+                            validation={VALIDATION_RULES.title}
                         />
                         <EditableTaskField
                             fieldName={task.date}
@@ -144,6 +124,7 @@ export default function ViewTask({taskId, onBack, updateTasks}: Props) {
                             onChange={(text) => handleEditChange('location', text)}
                             onDoubleClick={() => handleDoubleClick('location')}
                             text={'Location'}
+                            validation={VALIDATION_RULES.location}
                         />
                         <EditableTaskField
                             fieldName={task.description}
@@ -152,6 +133,7 @@ export default function ViewTask({taskId, onBack, updateTasks}: Props) {
                             onChange={(text) => handleEditChange('description', text)}
                             onDoubleClick={() => handleDoubleClick('description')}
                             text={'Description'}
+                            validation={VALIDATION_RULES.description}
                         />
                         <TouchableOpacity
                             style={styles.deleteButton}
