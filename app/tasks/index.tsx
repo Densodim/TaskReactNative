@@ -1,198 +1,204 @@
-import {Animated, Keyboard, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View} from "react-native";
-import {useEffect, useState} from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import CreateTask, {Status} from "@/components/create";
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import AntDesign from '@expo/vector-icons/AntDesign';
-import ViewTask from "@/components/ViewTask";
+import {
+  Animated,
+  Keyboard,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from "react-native";
+import { useEffect, useState } from "react";
+import CreateTask, { Status } from "@/components/CreateTask";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import AntDesign from "@expo/vector-icons/AntDesign";
 import getBorderColorByStatus from "@/lib/getBorderColorByStatus";
 import CircleButton from "@/components/CircleButton";
-import {useFetchStoredTask} from "@/hooks/useFetchStoredTask";
 import ScrollView = Animated.ScrollView;
-
-
+import useTaskStore from "@/store/useTaskStore";
 
 export default function TaskList() {
-    const [expanded, setExpanded] = useState<boolean>(false);
-    const [sortOrder, setSortOrder] = useState<"date" | "status">("date");
-    const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState<boolean>(false);
+  const [sortOrder, setSortOrder] = useState<"date" | "status">("date");
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
 
-    const {taskView, setTaskView}=useFetchStoredTask();
+  //  const {taskView, setTaskView}=useFetchStoredTask();
+  const { tasks, loadTasks, deleteTask } = useTaskStore();
 
-    const updateTasks = async () => {
-        const storedTasks = await AsyncStorage.getItem('tasks');
-        console.log(storedTasks)
-        setTaskView(storedTasks ? JSON.parse(storedTasks) : []);
-    };
-    const onExpanded = () => {
-        setExpanded(prevState => !prevState);
-    }
-
-    useEffect(() => {
-        updateTasks();
-    }, []);
-
-
-
-    const sortTasks = (tasks: Task[], order: "date" | "status"): Task[] => {
-        if (order === "date") {
-            return tasks.sort((a, b) => {
-                return new Date(b.date).getTime() - new Date(a.date).getTime();
-            });
-        } else if (order === "status") {
-            return tasks.sort((a, b) => a.status.localeCompare(b.status));
-        }
-        return tasks;
+  useEffect(() => {
+    const fetchTasks = async () => {
+      await loadTasks(); // Вызовите loadTasks для загрузки задач
     };
 
-    const handleSortChange = (order: "date" | "status") => {
-        setSortOrder(order);
-        setTaskView(prevTasks => sortTasks(prevTasks, order));
-    };
+    fetchTasks();
+  }, [loadTasks]);
 
-    const deleteTask = async (taskID: string) => {
-        try {
-            const updatedTask = taskView.filter((task) => task.id !== taskID);
-            setTaskView(updatedTask)
-            await AsyncStorage.setItem("tasks", JSON.stringify(updatedTask));
-        } catch (e) {
-            console.log("Error deleting task:", e)
-        }
+  const onExpanded = () => {
+    setExpanded((prevState) => !prevState);
+  };
 
+  const sortTasks = (tasks: Task[], order: "date" | "status"): Task[] => {
+    if (order === "date") {
+      return tasks.sort((a, b) => {
+        return new Date(b.date).getTime() - new Date(a.date).getTime();
+      });
+    } else if (order === "status") {
+      return tasks.sort((a, b) => a.status.localeCompare(b.status));
     }
-    if (selectedTaskId) {
-        return (
-            <ViewTask
-                taskId={selectedTaskId}
-                onBack={() => setSelectedTaskId(null)}
-                updateTasks={updateTasks}
-            />
-        );
-    }
+    return tasks;
+  };
 
-    return (
-        // <KeyboardAvoidingView style={styles.container} behavior="height">
-        <TouchableWithoutFeedback
-            onPress={() => Keyboard.dismiss()}
-        >
-            <ScrollView
-                contentContainerStyle={styles.scrollViewContainer}
-                keyboardShouldPersistTaps="handled"
-            >
-                <View style={styles.innerContainer}>
-                    <View style={styles.optionsContainer}>
+  const handleSortChange = (order: "date" | "status") => {
+    setSortOrder(order);
+    //   setTaskView(prevTasks => sortTasks(prevTasks, order));
+  };
 
-                            {!expanded && <View>
-                                <Text style={styles.title}>Your Tasks</Text>
-                                <CircleButton onPress={onExpanded}/>
-                            </View>}
+  if (selectedTaskId) {
+    return;
+    //  (
+    //   <ViewTask
+    //       taskId={selectedTaskId}
+    //       onBack={() => setSelectedTaskId(null)}
+    // updateTasks={updateTasks}
+    //   />
+    //  );
+  }
 
+  return (
+    // <KeyboardAvoidingView style={styles.container} behavior="height">
+    <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+      <ScrollView
+        contentContainerStyle={styles.scrollViewContainer}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.innerContainer}>
+          <View style={styles.optionsContainer}>
+            {!expanded && (
+              <View>
+                <Text style={styles.title}>Your Tasks</Text>
+                <CircleButton onPress={onExpanded} />
+              </View>
+            )}
+          </View>
+
+          {expanded && <CreateTask setExpanded={setExpanded} />}
+
+          <View style={styles.tasklist}>
+            <View style={styles.iconContainer}>
+              <MaterialCommunityIcons
+                name="sort-numeric-variant"
+                size={24}
+                color="black"
+                onPress={() => handleSortChange("date")}
+              />
+              <MaterialCommunityIcons
+                name="sort-alphabetical-ascending"
+                size={24}
+                color="black"
+                onPress={() => handleSortChange("status")}
+              />
+            </View>
+            {Array.isArray(tasks) && tasks.length > 0 ? (
+              tasks.map((task) => (
+                <TouchableOpacity
+                  key={task.id}
+                  onPress={() => setSelectedTaskId(task.id)}
+                >
+                  <View
+                    style={[
+                      styles.taskConteiner,
+                      {
+                        borderColor: getBorderColorByStatus(
+                          task.status as Status
+                        ),
+                      },
+                    ]}
+                  >
+                    <View key={task.id} style={styles.task}>
+                      <Text style={styles.taskTitle}>{task.title}</Text>
+                      <Text>
+                        Created: {new Date(task.date).toLocaleString()}
+                      </Text>
+                      <Text>Status: {task.status}</Text>
                     </View>
-
-                    {expanded && <CreateTask updateTasks={updateTasks} setExpanded={setExpanded}/>}
-
-
-                    <View style={styles.tasklist}>
-                        <View style={styles.iconContainer}>
-                            <MaterialCommunityIcons name="sort-numeric-variant" size={24} color="black"
-                                                    onPress={() => handleSortChange("date")}/>
-                            <MaterialCommunityIcons name="sort-alphabetical-ascending" size={24} color="black"
-                                                    onPress={() => handleSortChange("status")}/>
-                        </View>
-                        {
-                            Array.isArray(taskView) && taskView.length > 0 ? (
-                                taskView.map((task) => (
-                                    <TouchableOpacity key={task.id} onPress={() => setSelectedTaskId(task.id)}>
-                                        <View
-                                            style={[styles.taskConteiner, {borderColor: getBorderColorByStatus(task.status)}]}>
-                                            <View key={task.id} style={styles.task}>
-                                                <Text style={styles.taskTitle}>{task.title}</Text>
-                                                <Text>Created: {task.date}</Text>
-                                                <Text>Status: {task.status}</Text>
-                                            </View>
-                                            <TouchableOpacity onPress={() => deleteTask(task.id)}>
-                                                <AntDesign name="delete" size={24} color="black"/>
-                                            </TouchableOpacity>
-                                        </View>
-                                    </TouchableOpacity>
-                                ))
-                            ) : (
-                                <Text>
-                                    Not found task
-                                </Text>
-                            )
-                        }
-                    </View>
-                </View>
-            </ScrollView>
-        </TouchableWithoutFeedback>
-        // </KeyboardAvoidingView>
-    );
+                    <TouchableOpacity onPress={() => deleteTask(task.id)}>
+                      <AntDesign name="delete" size={24} color="black" />
+                    </TouchableOpacity>
+                  </View>
+                </TouchableOpacity>
+              ))
+            ) : (
+              <Text>Not found task</Text>
+            )}
+          </View>
+        </View>
+      </ScrollView>
+    </TouchableWithoutFeedback>
+    // </KeyboardAvoidingView>
+  );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: "#f5f5f5",
-    },
-    title: {
-        fontSize: 24,
-        fontWeight: "bold",
-        textAlign: "center",
-        marginVertical: 16,
-    },
-    innerContainer: {
-        padding: 16,
-    },
-    tasklist: {
-        marginTop: 20,
-    },
-    taskConteiner: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        padding: 10,
-        marginBottom: 10,
-        backgroundColor: "#fff",
-        borderRadius: 20,
-        borderWidth: 1,
-        shadowColor: "#302e2e",
-        shadowOpacity: 0.5,
-        shadowOffset: {width: 0, height: 2},
-        shadowRadius: 10,
-        elevation: 2,
-    },
-    task: {
-        flex: 1,
-        marginRight: 10,
-    },
-    taskTitle: {
-        fontSize: 18,
-        fontWeight: "bold",
-        marginBottom: 4,
-    },
-    iconContainer: {
-        flexDirection: "row",
-        justifyContent: "space-around",
-        marginBottom: 16,
-    },
-    scrollViewContainer: {
-        flexGrow: 1,
-    },
-    optionsContainer:{
-        position: "static",
-        alignItems: "center",
-        bottom: 80,
-    }
-
+  container: {
+    flex: 1,
+    backgroundColor: "#f5f5f5",
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginVertical: 16,
+  },
+  innerContainer: {
+    padding: 16,
+  },
+  tasklist: {
+    marginTop: 20,
+  },
+  taskConteiner: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 10,
+    marginBottom: 10,
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    borderWidth: 1,
+    shadowColor: "#302e2e",
+    shadowOpacity: 0.5,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 10,
+    elevation: 2,
+  },
+  task: {
+    flex: 1,
+    marginRight: 10,
+  },
+  taskTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 4,
+  },
+  iconContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginBottom: 16,
+  },
+  scrollViewContainer: {
+    flexGrow: 1,
+  },
+  optionsContainer: {
+    position: "static",
+    alignItems: "center",
+    bottom: 80,
+  },
 });
 
 //type
 export type Task = {
-    id: string;
-    title: string;
-    description: string;
-    date: string;
-    location: string;
-    status: Status
-}
+  id: string;
+  title: string;
+  description: string;
+  date: string;
+  location: string;
+  status: Status;
+};
