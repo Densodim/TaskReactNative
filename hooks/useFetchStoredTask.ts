@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import {useEffect, useState} from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Task } from "@/app/tasks";
+import {Task} from "@/app/tasks";
+import {z} from 'zod';
 
 export function useFetchStoredTask(taskId?: string | null) {
     const [taskView, setTaskView] = useState<Task[]>([]);
@@ -10,6 +11,7 @@ export function useFetchStoredTask(taskId?: string | null) {
     useEffect(() => {
         const fetchStoredTask = async () => {
             try {
+                debugger;
                 const storedTask = await AsyncStorage.getItem("tasks");
                 if (storedTask != null) {
                     const taskParse = JSON.parse(storedTask);
@@ -30,5 +32,29 @@ export function useFetchStoredTask(taskId?: string | null) {
         fetchStoredTask();
     }, [taskId]);
 
-    return { taskView, editedTask, setTaskView, setEditedTask, error };
+    return {taskView, editedTask, setTaskView, setEditedTask, error};
 }
+
+export const TaskSchema = z.object({
+    id: z.string().nullable(),
+    title: z.string().nullable(),
+    date: z.string().optional(),
+    description: z.string().nullable(),
+    location: z.string().nullable(),
+    status: z.union([
+        z.literal('In Progress'),
+        z.literal('Completed'),
+        z.literal('Cancelled'),
+        z.literal('Create')
+    ]).transform((val) => {
+        if (val === 'Create') {
+            return 'In Progress'
+        }
+        return val
+    })
+})
+
+type TaskInputType = z.input<typeof TaskSchema>
+type TaskOutputType = z.output<typeof TaskSchema>
+
+

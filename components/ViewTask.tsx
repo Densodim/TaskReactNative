@@ -6,7 +6,7 @@ import {Task} from "@/app/tasks";
 import {EditableTaskField} from "@/components/EditableTaskField";
 import {Status} from "@/components/create";
 import uuid from "react-native-uuid";
-import validateField, {VALIDATION_RULES} from "@/hooks/validateField";
+import validateField, {VALIDATION_RULES} from "@/lib/validateField";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import {useFetchStoredTask} from "@/hooks/useFetchStoredTask";
 

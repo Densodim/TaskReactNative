@@ -4,7 +4,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import uuid from 'react-native-uuid';
 import Fontisto from '@expo/vector-icons/Fontisto';
 import BasicInput from "@/components/BasicInput";
-import validateField, {VALIDATION_RULES} from "@/hooks/validateField";
+import validateField, {VALIDATION_RULES} from "@/lib/validateField";
 
 export enum Status {
     progres = 'In Progress',

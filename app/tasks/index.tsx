@@ -5,10 +5,11 @@ import CreateTask, {Status} from "@/components/create";
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import ViewTask from "@/components/ViewTask";
-import getBorderColorByStatus from "@/hooks/getBorderColorByStatus";
+import getBorderColorByStatus from "@/lib/getBorderColorByStatus";
 import CircleButton from "@/components/CircleButton";
-import ScrollView = Animated.ScrollView;
 import {useFetchStoredTask} from "@/hooks/useFetchStoredTask";
+import ScrollView = Animated.ScrollView;
+
 
 
 export default function TaskList() {
@@ -20,11 +21,18 @@ export default function TaskList() {
 
     const updateTasks = async () => {
         const storedTasks = await AsyncStorage.getItem('tasks');
+        console.log(storedTasks)
         setTaskView(storedTasks ? JSON.parse(storedTasks) : []);
     };
     const onExpanded = () => {
         setExpanded(prevState => !prevState);
     }
+
+    useEffect(() => {
+        updateTasks();
+    }, []);
+
+
 
     const sortTasks = (tasks: Task[], order: "date" | "status"): Task[] => {
         if (order === "date") {
