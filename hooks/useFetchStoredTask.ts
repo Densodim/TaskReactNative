@@ -11,7 +11,6 @@ export function useFetchStoredTask(taskId?: string | null) {
   useEffect(() => {
     const fetchStoredTask = async () => {
       try {
-        debugger;
         const storedTask = await AsyncStorage.getItem("tasks");
         if (storedTask != null) {
           const taskParse = JSON.parse(storedTask);
@@ -40,7 +39,7 @@ export function useFetchStoredTask(taskId?: string | null) {
 export const TaskSchema = z.object({
   id: z.string().nonempty(),
   title: z.string(),
-  date: z.date(),
+  date: z.string(),
   description: z.string(),
   location: z.string(),
   status: z

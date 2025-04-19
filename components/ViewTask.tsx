@@ -5,7 +5,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { Task } from "@/app/tasks";
@@ -15,6 +15,7 @@ import uuid from "react-native-uuid";
 import validateField, { VALIDATION_RULES } from "@/lib/validateField";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useFetchStoredTask } from "@/hooks/useFetchStoredTask";
+import useTaskStore from "@/store/useTaskStore";
 
 const OPTIONS = [
   { id: uuid.v4(), label: "Progress", value: Status.progress },
@@ -22,27 +23,32 @@ const OPTIONS = [
   { id: uuid.v4(), label: "Cancelled", value: Status.cancelled },
 ];
 
-export default function ViewTask({ taskId, onBack, updateTasks }: Props) {
-  const {
-    editedTask,
-    setTaskView,
-    taskView,
-    setEditedTask,
-  } = useFetchStoredTask(taskId);
+export default function ViewTask({ taskId, onBack }: Props) {
+  //   const {
+  //     editedTask,
+  //     setTaskView,
+  //     taskView,
+  //     setEditedTask,
+  //   } = useFetchStoredTask(taskId);
+
   const [editingField, setEditingField] = useState<string | null>(null);
+  const [editedTask, setEditedTask] = useState<Task | null>(null);
 
-  const deleteTask = async () => {
+  const { deleteTask, updateTask, editTask, task } = useTaskStore();
+  console.log(task);
+
+  useEffect(() => {
+    debugger;
+    editTask(taskId);
+  }, []);
+
+  const handleDeleteTask = () => {
     try {
-      const storedTasks = await AsyncStorage.getItem("tasks");
-      if (storedTasks) {
-        const parsedTasks = JSON.parse(storedTasks);
-        const newTasks = parsedTasks.filter((t: Task) => t.id !== taskId);
+      deleteTask(taskId);
 
-        await AsyncStorage.setItem("tasks", JSON.stringify(newTasks));
-        setTaskView([]);
-        updateTasks();
-        onBack();
-      }
+      // setTaskView([]);
+      // updateTasks();
+      onBack();
     } catch (e) {
       console.log("Error deleting task:", e);
     }
@@ -61,7 +67,7 @@ export default function ViewTask({ taskId, onBack, updateTasks }: Props) {
     }
   };
 
-  const handleSaveChanges = async () => {
+  const handleSaveChanges = () => {
     if (editedTask) {
       try {
         const error = validateField(editedTask);
@@ -74,17 +80,13 @@ export default function ViewTask({ taskId, onBack, updateTasks }: Props) {
           return;
         }
 
-        const storedTasks = await AsyncStorage.getItem("tasks");
-        if (storedTasks) {
-          const parsedTasks = JSON.parse(storedTasks);
-          const updatedTasks = parsedTasks.map((t: Task) =>
-            t.id === editedTask.id ? editedTask : t
-          );
-          await AsyncStorage.setItem("tasks", JSON.stringify(updatedTasks));
-          setTaskView([editedTask]);
-          setEditingField(null);
-          updateTasks();
-        }
+        updateTask(taskId, "title", editedTask.title);
+        updateTask(taskId, "date", editedTask.date);
+        updateTask(taskId, "status", editedTask.status);
+        updateTask(taskId, "location", editedTask.location);
+        updateTask(taskId, "description", editedTask.description);
+
+        setEditingField(null);
       } catch (e) {
         console.log("Error saving task:", e);
       }
@@ -97,68 +99,66 @@ export default function ViewTask({ taskId, onBack, updateTasks }: Props) {
         <MaterialCommunityIcons name="backburger" size={24} color="black" />
         <Text>Back to Task List</Text>
       </TouchableOpacity>
-      {Array.isArray(taskView) && taskView.length > 0 ? (
-        taskView.map((task) => (
-          <View key={task.id} style={styles.task}>
-            <EditableTaskField
-              fieldName={task.title}
-              value={editedTask?.title || ""}
-              isEditing={editingField === "title"}
-              onChange={(text) => handleEditChange("title", text)}
-              onDoubleClick={() => handleDoubleClick("title")}
-              style={styles.taskTitle}
-              validation={VALIDATION_RULES.title}
-            />
-            <EditableTaskField
-              fieldName={task.date}
-              value={editedTask?.date || ""}
-              isEditing={editingField === "date"}
-              onChange={(text) => handleEditChange("date", text)}
-              onDoubleClick={() => handleDoubleClick("date")}
-              type={"date"}
-              text={"Created"}
-            />
-            <EditableTaskField
-              fieldName={task.status}
-              value={editedTask?.status || ""}
-              isEditing={editingField === "status"}
-              onChange={(text) => handleEditChange("status", text)}
-              onDoubleClick={() => handleDoubleClick("status")}
-              type={"select"}
-              text={"Status"}
-              options={OPTIONS}
-            />
-            <EditableTaskField
-              fieldName={task.location}
-              value={editedTask?.location || ""}
-              isEditing={editingField === "location"}
-              onChange={(text) => handleEditChange("location", text)}
-              onDoubleClick={() => handleDoubleClick("location")}
-              text={"Location"}
-              validation={VALIDATION_RULES.location}
-            />
-            <EditableTaskField
-              fieldName={task.description}
-              value={editedTask?.description || ""}
-              isEditing={editingField === "description"}
-              onChange={(text) => handleEditChange("description", text)}
-              onDoubleClick={() => handleDoubleClick("description")}
-              text={"Description"}
-              validation={VALIDATION_RULES.description}
-            />
-            <TouchableOpacity
-              style={styles.deleteButton}
-              onPress={() => deleteTask()}
-            >
-              <AntDesign name="delete" size={24} color="red" />
+      {task ? (
+        <View key={task.id} style={styles.task}>
+          <EditableTaskField
+            fieldName={task.title}
+            value={editedTask?.title || ""}
+            isEditing={editingField === "title"}
+            onChange={(text) => handleEditChange("title", text)}
+            onDoubleClick={() => handleDoubleClick("title")}
+            style={styles.taskTitle}
+            validation={VALIDATION_RULES.title}
+          />
+          <EditableTaskField
+            fieldName={task.date}
+            value={editedTask?.date || ""}
+            isEditing={editingField === "date"}
+            onChange={(text) => handleEditChange("date", text)}
+            onDoubleClick={() => handleDoubleClick("date")}
+            type={"date"}
+            text={"Created"}
+          />
+          <EditableTaskField
+            fieldName={task.status}
+            value={editedTask?.status || ""}
+            isEditing={editingField === "status"}
+            onChange={(text) => handleEditChange("status", text)}
+            onDoubleClick={() => handleDoubleClick("status")}
+            type={"select"}
+            text={"Status"}
+            options={OPTIONS}
+          />
+          <EditableTaskField
+            fieldName={task.location}
+            value={editedTask?.location || ""}
+            isEditing={editingField === "location"}
+            onChange={(text) => handleEditChange("location", text)}
+            onDoubleClick={() => handleDoubleClick("location")}
+            text={"Location"}
+            validation={VALIDATION_RULES.location}
+          />
+          <EditableTaskField
+            fieldName={task.description}
+            value={editedTask?.description || ""}
+            isEditing={editingField === "description"}
+            onChange={(text) => handleEditChange("description", text)}
+            onDoubleClick={() => handleDoubleClick("description")}
+            text={"Description"}
+            validation={VALIDATION_RULES.description}
+          />
+          <TouchableOpacity
+            style={styles.deleteButton}
+            onPress={() => handleDeleteTask()}
+          >
+            <AntDesign name="delete" size={24} color="red" />
+          </TouchableOpacity>
+          {editingField && (
+            <TouchableOpacity onPress={handleSaveChanges}>
+              <AntDesign name="save" size={26} color="red" />
             </TouchableOpacity>
-            {editingField && (
-              <TouchableOpacity onPress={handleSaveChanges}>
-                <AntDesign name="save" size={26} color="red" />
-              </TouchableOpacity>
-            )}
-          </View>
-        ))
+          )}
+        </View>
       ) : (
         <Text style={{ textAlign: "center", marginTop: 20 }}>
           Task not found. Please check the task ID.
@@ -198,5 +198,5 @@ const styles = StyleSheet.create({
 type Props = {
   taskId: string;
   onBack: () => void;
-  updateTasks: () => void;
+  //   updateTasks: () => void;
 };

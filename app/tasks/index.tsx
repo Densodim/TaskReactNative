@@ -15,10 +15,12 @@ import getBorderColorByStatus from "@/lib/getBorderColorByStatus";
 import CircleButton from "@/components/CircleButton";
 import ScrollView = Animated.ScrollView;
 import useTaskStore from "@/store/useTaskStore";
+import ViewTask from "@/components/ViewTask";
 
 export default function TaskList() {
   const [expanded, setExpanded] = useState<boolean>(false);
   const [sortOrder, setSortOrder] = useState<"date" | "status">("date");
+
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
 
   //  const {taskView, setTaskView}=useFetchStoredTask();
@@ -53,14 +55,12 @@ export default function TaskList() {
   };
 
   if (selectedTaskId) {
-    return;
-    //  (
-    //   <ViewTask
-    //       taskId={selectedTaskId}
-    //       onBack={() => setSelectedTaskId(null)}
-    // updateTasks={updateTasks}
-    //   />
-    //  );
+    return (
+      <ViewTask
+        taskId={selectedTaskId}
+        onBack={() => setSelectedTaskId(null)}
+      />
+    );
   }
 
   return (
