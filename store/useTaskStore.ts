@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { TaskInputType, TaskOutputType, TaskSchema } from "@/lib/TaskSchema";
+import { TaskInputType, TaskOutputType } from "@/lib/TaskSchema";
 import uuid from "react-native-uuid";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 

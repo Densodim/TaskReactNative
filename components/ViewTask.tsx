@@ -21,7 +21,7 @@ const OPTIONS = [
   { id: uuid.v4(), label: "Cancelled", value: Status.cancelled },
 ];
 
-export default function ViewTask({ taskId, onBack }: Props) {
+function ViewTask({ taskId, onBack }: Props) {
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editedTask, setEditedTask] = useState<TaskOutputType | null>(null);
 
@@ -182,3 +182,5 @@ type Props = {
   taskId: string;
   onBack: () => void;
 };
+
+export default ViewTask;
