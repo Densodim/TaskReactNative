@@ -6,15 +6,13 @@ import {
   View,
 } from "react-native";
 import { useEffect, useState } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import AntDesign from "@expo/vector-icons/AntDesign";
-import { Task } from "@/app/tasks";
 import { EditableTaskField } from "@/components/EditableTaskField";
 import { Status } from "@/components/CreateTask";
 import uuid from "react-native-uuid";
 import validateField, { VALIDATION_RULES } from "@/lib/validateField";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import { useFetchStoredTask } from "@/hooks/useFetchStoredTask";
+import { TaskOutputType } from "@/lib/TaskSchema";
 import useTaskStore from "@/store/useTaskStore";
 
 const OPTIONS = [
@@ -24,34 +22,19 @@ const OPTIONS = [
 ];
 
 export default function ViewTask({ taskId, onBack }: Props) {
-  //   const {
-  //     editedTask,
-  //     setTaskView,
-  //     taskView,
-  //     setEditedTask,
-  //   } = useFetchStoredTask(taskId);
-
   const [editingField, setEditingField] = useState<string | null>(null);
-  const [editedTask, setEditedTask] = useState<Task | null>(null);
+  const [editedTask, setEditedTask] = useState<TaskOutputType | null>(null);
 
   const { deleteTask, updateTask, editTask, task } = useTaskStore();
-  console.log(task);
 
   useEffect(() => {
-    debugger;
     editTask(taskId);
-  }, []);
+    setEditedTask(task);
+  }, [taskId]);
 
   const handleDeleteTask = () => {
-    try {
-      deleteTask(taskId);
-
-      // setTaskView([]);
-      // updateTasks();
-      onBack();
-    } catch (e) {
-      console.log("Error deleting task:", e);
-    }
+    deleteTask(taskId);
+    onBack();
   };
 
   const handleDoubleClick = (field: string) => {
@@ -198,5 +181,4 @@ const styles = StyleSheet.create({
 type Props = {
   taskId: string;
   onBack: () => void;
-  //   updateTasks: () => void;
 };

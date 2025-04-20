@@ -19,18 +19,14 @@ import ViewTask from "@/components/ViewTask";
 
 export default function TaskList() {
   const [expanded, setExpanded] = useState<boolean>(false);
-  const [sortOrder, setSortOrder] = useState<"date" | "status">("date");
-
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
 
-  //  const {taskView, setTaskView}=useFetchStoredTask();
-  const { tasks, loadTasks, deleteTask } = useTaskStore();
+  const { tasks, loadTasks, deleteTask, sortTasks } = useTaskStore();
 
   useEffect(() => {
     const fetchTasks = async () => {
       await loadTasks(); // Вызовите loadTasks для загрузки задач
     };
-
     fetchTasks();
   }, [loadTasks]);
 
@@ -38,20 +34,8 @@ export default function TaskList() {
     setExpanded((prevState) => !prevState);
   };
 
-  const sortTasks = (tasks: Task[], order: "date" | "status"): Task[] => {
-    if (order === "date") {
-      return tasks.sort((a, b) => {
-        return new Date(b.date).getTime() - new Date(a.date).getTime();
-      });
-    } else if (order === "status") {
-      return tasks.sort((a, b) => a.status.localeCompare(b.status));
-    }
-    return tasks;
-  };
-
   const handleSortChange = (order: "date" | "status") => {
-    setSortOrder(order);
-    //   setTaskView(prevTasks => sortTasks(prevTasks, order));
+    sortTasks(order);
   };
 
   if (selectedTaskId) {
