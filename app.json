@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "TaskWork",
-    "slug": "TaskWork",
+    "slug": "task",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -16,7 +16,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.denso123.TaskWork"
+      "package": "com.denso123.task"
     },
     "web": {
       "bundler": "metro",
@@ -43,8 +43,9 @@
         "origin": false
       },
       "eas": {
-        "projectId": "ffddc3ba-1922-4afc-9391-eeb5a3296420"
+        "projectId": "9f5256c9-5e4a-4f87-b5af-12de61e27690"
       }
-    }
+    },
+    "owner": "denso123"
   }
 }
